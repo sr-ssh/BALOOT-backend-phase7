@@ -1,88 +1,161 @@
 package ir.ac.ut.ie.Entities;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import ir.ac.ut.ie.Exceptions.AgeLimitError;
-import ir.ac.ut.ie.Exceptions.MovieAlreadyExists;
-import ir.ac.ut.ie.Exceptions.MovieNotFound;
+import ir.ac.ut.ie.DataBase;
+import ir.ac.ut.ie.Exceptions.*;
 
-import javax.persistence.*;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.*;
 
-@Entity
-@Table(name= "User")
 public class User {
-    @Id
-    private String email;
+    //    private String email;
+//    private String password;
+//    private String nickname;
+//    private String name;
+//    private Date birthDate;
+//    private Set<Integer> watchList = new HashSet<>();
+    private String username;
     private String password;
-    private String nickname;
-    private String name;
+    private String email;
     private Date birthDate;
-    @ElementCollection
-    private Set<Integer> watchList = new HashSet<>();
+    private String address;
+    private Integer credit;
+    private Set<Integer> buyList = new HashSet<>();
+    private List<String> usedDiscounts = new ArrayList<>();
+    private Discount currentDiscount;
 
 
-    public User(String email, String password, String nickname, String name, Date birthDate) {
+    public User(String email, String password, String username, String address, Date birthDate, Integer credit) {
         this.email = email;
         this.password = password;
-        this.nickname = nickname;
-        this.name = name;
+        this.username = username;
         this.birthDate = birthDate;
+        this.address = address;
+        this.credit = credit;
     }
 
     public User() {}
 
-    public void addToWatchList(Integer movieId, int ageLimit) throws Exception {
-        movieAlreadyExists(movieId);
-        ageLimitError(ageLimit);
-        watchList.add(movieId);
+
+    public void addToBuyList(Integer commodityId, int inStock) throws Exception {
+        commodityAlreadyExists(commodityId);
+        stockLimitError(inStock);
+        buyList.add(commodityId);
     }
 
-    public void movieAlreadyExists(Integer movieId) throws JsonProcessingException, MovieAlreadyExists {
-        if (watchList.contains(movieId))
-            throw new MovieAlreadyExists();
+    public void commodityAlreadyExists(Integer commodityId) throws JsonProcessingException, CommodityAlreadyExists {
+        if (buyList.contains(commodityId))
+            throw new CommodityAlreadyExists();
     }
 
-    public void ageLimitError(int ageLimit) throws Exception {
-        LocalDate birthDate = new java.sql.Date(this.birthDate.getTime()).toLocalDate();
-        int age = Period.between(birthDate, LocalDate.now()).getYears();
-        if (age < ageLimit)
-            throw new AgeLimitError();
+    public void stockLimitError(int inStock) throws Exception {
+        if (0 >= inStock)
+            throw new StockLimitError();
     }
 
-    public void removeFromWatchList(Integer movieId) throws Exception {
-        if (!watchList.contains(movieId))
-            throw new MovieNotFound();
-        watchList.remove(movieId);
+    public void removeFromBuyList(Integer commodityId) throws Exception {
+        if (!buyList.contains(commodityId))
+            throw new CommodityNotFound();
+        buyList.remove(commodityId);
     }
 
+    public void addCredit(Integer credit) throws Exception {
+        if (credit < 0)
+            throw new InvalidCredit();
+        this.credit += credit;
+    }
+
+    public Integer getBuyListPrice() throws Exception{
+        int totalPrice = 0;
+        for (Integer commodityId: buyList) {
+            Commodity commodity = DataBase.getInstance().getCommodityById(commodityId);
+            totalPrice += commodity.getPrice();
+        }
+        if (checkDiscount()) {
+            Float tmpPrice = (float)(totalPrice);
+            Float discount = (float)(currentDiscount.getDiscount());
+            totalPrice = (int)(tmpPrice * (1 - discount/100));
+        }
+        return totalPrice;
+    }
+    private boolean checkDiscount() throws Exception {
+        if (currentDiscount != null){
+            if (usedDiscounts.contains(currentDiscount.getDiscountCode())){
+                throw new DiscountAlreadyUsed();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void payment() throws Exception  {
+        int totalBuyListPrice = getBuyListPrice();
+        if (totalBuyListPrice > credit)
+            throw new NotEnoughCredit();
+        for (Integer commodityId: buyList) {
+            Commodity commodity = DataBase.getInstance().getCommodityById(commodityId);
+            if (commodity.getInStock() < 1)
+                throw new StockLimitError();
+        }
+        for (Integer commodityId: buyList) {
+            Commodity commodity = DataBase.getInstance().getCommodityById(commodityId);
+            commodity.reduceStock();
+        }
+        credit -= totalBuyListPrice;
+        buyList.clear();
+        if (currentDiscount != null){
+            usedDiscounts.add(currentDiscount.getDiscountCode());
+            currentDiscount = null;
+        }
+    }
+
+    public String getUsername() {
+        return username;
+    }
     public String getEmail() {
         return email;
     }
     public String getPassword() {
         return password;
     }
-    public String getNickname() {
-        return nickname;
+    public String getAddress() {
+        return address;
     }
-    public String getName() {
-        return name;
+    public Integer getCredit() {
+        return credit;
     }
+    //    public String getNickname() {
+//        return nickname;
+//    }
+//
     public Date getBirthDate() {
         return birthDate;
     }
-    public Set<Integer> getWatchList() {
-        return watchList;
+    public Set<Integer> getBuyList() {
+        return buyList;
     }
-    public void setName(String name) {
-        this.name = name;
+
+    public void setCurrentDiscount(Discount currentDiscount) throws Exception{
+        if (usedDiscounts.contains(currentDiscount.getDiscountCode())){
+            throw new DiscountAlreadyUsed();
+        }
+        this.currentDiscount = currentDiscount;
     }
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
+    public void setUsername(String username) {
+        this.username = username;
     }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
+    }
+    public void setCredit(Integer credit) {
+        this.credit = credit;
+    }
+
+
     public void setPassword(String password) {
         this.password = password;
     }
-    public void setBirthDate(Date birthDate) { this.birthDate = birthDate; }
 }

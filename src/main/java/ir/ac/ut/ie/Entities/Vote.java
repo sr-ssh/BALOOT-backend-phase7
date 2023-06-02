@@ -12,17 +12,15 @@ public class Vote {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer voteID;
-    private String userEmail;
-    private Integer commentId;
-    private Integer vote;
+    private final String username;
+    private final Integer commentId;
+    private final Integer vote;
 
-    public Vote(String userEmail, Integer commentId, Integer vote) {
-        this.userEmail = userEmail;
+    public Vote(String username, Integer commentId, Integer vote) {
+        this.username = username;
         this.commentId = commentId;
         this.vote = vote;
     }
-
-    public Vote() {}
 
     public void hasError() throws Exception {
         if (vote == null)
@@ -30,20 +28,16 @@ public class Vote {
         if (!(vote == 1 || vote == -1 || vote == 0))
             throw new InvalidVoteValue();
     }
-
     public Integer getVoteID() {
         return voteID;
     }
-    public String getUserEmail() {
-        return userEmail;
+    public String getUsername() {
+        return username;
     }
     public Integer getCommentId() {
         return commentId;
     }
     public int getVote() {
         return vote;
-    }
-    public void setVote(Integer vote) {
-        this.vote = vote;
     }
 }

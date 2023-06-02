@@ -2,36 +2,27 @@ package ir.ac.ut.ie.Entities;
 
 import ir.ac.ut.ie.Exceptions.InvalidRateScore;
 
-import javax.persistence.*;
-
-@Entity
-@Table(name = "Rate")
 public class Rate {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer rateId;
-    private String userEmail;
-    private Integer movieId;
-    private float score;
+    private final String username;
+    private final Integer commodityId;
+    private final float score;
 
-    public Rate(String userEmail, Integer movieId, float score) {
-        this.userEmail = userEmail;
-        this.movieId = movieId;
+    public Rate(String username, Integer commodityId, float score) {
+        this.username = username;
+        this.commodityId = commodityId;
         this.score = score;
     }
-
-    public Rate() {}
 
     public void hasError() throws Exception {
         if ((((int) score != score) || (score < 1 || score > 10)))
             throw new InvalidRateScore();
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public String getUsername() {
+        return username;
     }
-    public Integer getMovieId() {
-        return movieId;
+    public Integer getCommodityId() {
+        return commodityId;
     }
     public float getScore() {
         return score;

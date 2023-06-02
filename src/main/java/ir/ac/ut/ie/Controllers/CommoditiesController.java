@@ -1,33 +1,31 @@
 package ir.ac.ut.ie.Controllers;
 
 import ir.ac.ut.ie.DataBase;
-import ir.ac.ut.ie.Entities.Movie;
+import ir.ac.ut.ie.Entities.Commodity;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.*;
 
+
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
+public class CommoditiesController {
 
-public class MoviesController {
-
-    @RequestMapping(value = "/getMovies", method = RequestMethod.GET,
+    @RequestMapping(value = "/getCommodities", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-
-    public List<Movie> getMovies(
+    public List<Commodity> getCommodities(
             @RequestParam(value = "defaultSort") String defaultSort,
             @RequestParam(value = "searchBy", required = false) String searchBy,
-            @RequestParam(value = "searchValue", required = false) String searchValue) throws IOException {
+            @RequestParam(value = "searchValue", required = false) String searchValue) throws IOException, InterruptedException {
 
         if(searchValue == null)
             searchValue ="";
         if(searchBy == null)
             searchBy ="";
-
-        List<Movie> movies = DataBase.getInstance().moviesToShow(Boolean.parseBoolean(defaultSort), searchBy, searchValue);
-        return movies;
+        List<Commodity> commodities = DataBase.getInstance().commoditiesToShow(Boolean.parseBoolean(defaultSort), searchBy, searchValue);
+        return commodities;
     }
 }
 
