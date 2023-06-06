@@ -5,21 +5,19 @@ import ir.ac.ut.ie.Exceptions.InvalidRateScore;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "Rate")
+@Table(name= "Rate")
 public class Rate {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer rateId;
-    private String userEmail;
-    private Integer movieId;
+    private String username;
+    private Integer commodityId;
     private float score;
 
-    public Rate(String userEmail, Integer movieId, float score) {
-        this.userEmail = userEmail;
-        this.movieId = movieId;
+    public Rate(String username, Integer commodityId, float score) {
+        this.username = username;
+        this.commodityId = commodityId;
         this.score = score;
     }
-
     public Rate() {}
 
     public void hasError() throws Exception {
@@ -27,11 +25,11 @@ public class Rate {
             throw new InvalidRateScore();
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public String getUsername() {
+        return username;
     }
-    public Integer getMovieId() {
-        return movieId;
+    public Integer getCommodityId() {
+        return commodityId;
     }
     public float getScore() {
         return score;

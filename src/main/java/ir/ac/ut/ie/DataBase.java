@@ -1,9 +1,10 @@
 package ir.ac.ut.ie;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ir.ac.ut.ie.Entities.Actor;
+import ir.ac.ut.ie.Entities.Provider;
 import ir.ac.ut.ie.Entities.Comment;
-import ir.ac.ut.ie.Entities.Movie;
+import ir.ac.ut.ie.Entities.Commodity;
+import ir.ac.ut.ie.Entities.Discount;
 import ir.ac.ut.ie.Entities.User;
 import ir.ac.ut.ie.Repository.*;
 import ir.ac.ut.ie.Utilities.HashCreator;
@@ -24,30 +25,23 @@ public class DataBase {
     private static DataBase instance;
     static private ObjectMapper mapper;
     static private String host;
-    private static MovieRepository movieRepository = null;
-    private static ActorRepository actorRepository = null;
+    private static CommodityRepository commodityRepository = null;
+    private static ProviderRepository providerRepository = null;
     private static UserRepository userRepository = null;
     private static CommentRepository commentRepository = null;
-
+    private static DiscountRepository discountRepository = null;
     @Autowired
-    public DataBase(MovieRepository movieRepository, ActorRepository actorRepository,
-                    UserRepository userRepository, CommentRepository commentRepository) {
-        DataBase.movieRepository = movieRepository;
-        DataBase.actorRepository = actorRepository;
+    public DataBase(CommodityRepository commodityRepository, ProviderRepository providerRepository, UserRepository userRepository, CommentRepository commentRepository, DiscountRepository discountRepository) {
+        DataBase.commodityRepository = commodityRepository;
+        DataBase.providerRepository = providerRepository;
         DataBase.userRepository = userRepository;
         DataBase.commentRepository = commentRepository;
-    }
-
-    @PostConstruct
-    public void initialize() {
-        mapper = new ObjectMapper();
-        host = "http://138.197.181.131:5000";
-        setInformation();
+        DataBase.discountRepository = DataBase.discountRepository;
     }
 
     public static DataBase getInstance() {
         if (instance == null)
-            instance = new DataBase(movieRepository, actorRepository, userRepository, commentRepository);
+            instance = new DataBase(commodityRepository, providerRepository, userRepository, commentRepository, discountRepository);
         return instance;
     }
 
@@ -62,46 +56,58 @@ public class DataBase {
         return line;
     }
 
+    @PostConstruct
+    public void initialize() {
+        mapper = new ObjectMapper();
+        host = "http://138.197.181.131:5000";
+        setInformation();
+    }
+
     private void setInformation() {
         try {
-            setActorsList();
-            setMoviesList();
+            setProvidersList();
+            setCommoditiesList();
             setUsersList();
             setCommentsList();
-            setActorMoviesPlayed();
-        }
-        catch (Exception exception) {
+            setDiscountsList();
+//            setActorsList();
+//            setMoviesList();
+//            setUsersList();
+//            setCommentsList();
+            setProviderCommoditesProvide();
+
+        } catch (Exception exception) {
             System.out.println(exception.getMessage());
         }
     }
 
-    private void setMoviesList() throws Exception {
-        String data = getConnection("/api/v2/movies");
-        Movie[] moviesList = mapper.readValue(data, Movie[].class);
-        movieRepository.saveAll(Arrays.asList(moviesList));
+    private void setCommoditiesList() throws Exception {
+        String data = getConnection("/api/v2/commodities");
+        Commodity[] commoditiesList = mapper.readValue(data, Commodity[].class);
+        commodityRepository.saveAll(Arrays.asList(commoditiesList));
     }
 
-    private void setActorsList() throws Exception {
-        String data = getConnection("/api/v2/actors");
-        Actor[] actorsList = mapper.readValue(data, Actor[].class);
-        actorRepository.saveAll(Arrays.asList(actorsList));
+    private void setProvidersList() throws Exception {
+        String data = getConnection("/api/v2/providers");
+        Provider[] providersList = mapper.readValue(data, Provider[].class);
+        providerRepository.saveAll(Arrays.asList(providersList));
     }
 
-    private void setActorMoviesPlayed() {
-        for (Actor actor : actorRepository.findAll()) {
-            actor.setMoviesPlayed((ArrayList<Movie>) movieRepository.findAllByCast(actor.getId()));
-            actorRepository.save(actor);
+    private void setProviderCommoditesProvide() {
+        for (Provider provider : providerRepository.findAll()) {
+            provider.setCommoditiesProvide((ArrayList<Commodity>) commodityRepository.findAllByProvider(provider.getId()));
+            providerRepository.save(provider);
         }
     }
 
-    public List<Movie> getActorMoviesPlayed(Integer actorId) {
-        return movieRepository.findAllByCast(actorId);
+    public List<Commodity> getCommoditiesFromProvider(Integer providerId) {
+        return commodityRepository.findAllByProvider(providerId);
     }
 
     private void setUsersList() throws Exception {
         String data = getConnection("/api/users");
         User[] usersList = mapper.readValue(data, User[].class);
-        for (User user: usersList)
+        for (User user : usersList)
             user.setPassword(HashCreator.getInstance().getMD5Hash(user.getPassword()));
         userRepository.saveAll(Arrays.asList(usersList));
     }
@@ -112,63 +118,67 @@ public class DataBase {
         commentRepository.saveAll(Arrays.asList(commentsList));
 
         for (Comment comment : commentRepository.findAll()) {
-            comment.setUsername(userRepository.findUserByEmail(comment.getUserEmail()).getName());
-            Movie commentMovie = movieRepository.findMovieById(comment.getMovieId());
-            commentMovie.addComment(comment);
-            movieRepository.save(commentMovie);
+            comment.setUsername(userRepository.findUserByEmail(comment.getUserEmail()).getEmail());
+            Commodity commentCommodity = commodityRepository.findCommodityById(comment.getCommodityId());
+            commentCommodity.addComment(comment);
+            commodityRepository.save(commentCommodity);
             commentRepository.save(comment);
         }
     }
 
-    public List<Movie> moviesToShow(boolean defaultSort, String searchBy, String searchValue) {
-        List<Movie> searchedMoviesList = setSearchedMovies(searchValue, searchBy);
-        if (defaultSort)
-            return searchedMoviesList;
-        else
-        {
-            List<Movie> tempMovies = movieRepository.findAllByOrderByReleaseDateDesc();
-            tempMovies.retainAll(searchedMoviesList);
-            return tempMovies;
+    private void setDiscountsList() throws Exception {
+        String data = getConnection("/api/discount");
+        Discount[] discountList = mapper.readValue(data, Discount[].class);
+        discountRepository.saveAll(Arrays.asList(discountList));
+    }
+
+    public Commodity getCommodityById(Integer id) throws Exception {
+        return commodityRepository.findCommodityById(id);
+    }
+
+    public List<Commodity> commoditiesToShow(boolean defaultSort, String searchBy, String searchValue) {
+        List<Commodity> searchedCommoditiesList = setSearchedCommodities(searchValue, searchBy);
+        if (defaultSort) return searchedCommoditiesList;
+        else {
+            List<Commodity> tempCommodities = commodityRepository.findAllByOrderByReleaseDateDesc();
+            tempCommodities.retainAll(searchedCommoditiesList);
+            return tempCommodities;
         }
     }
 
-    public List<Movie> setSearchedMovies(String searchValue, String searchBy) {
-        List<Movie> searchedMoviesList = new ArrayList<>();
-        if(searchBy.equals("genre"))
-            searchedMoviesList = movieRepository.findAllByGenresContains(searchValue);
-        if(searchBy.equals("name"))
-            searchedMoviesList = movieRepository.findAllByNameContains(searchValue);
-        if(searchBy.equals("releaseDate"))
-            searchedMoviesList = movieRepository.findAllByReleaseDateAfter(searchValue);
-        if(searchBy.equals(""))
-            searchedMoviesList = movieRepository.findAllByOrderByImdbRateDesc();
-        return searchedMoviesList;
+    public List<Commodity> setSearchedCommodities(String searchValue, String searchBy) {
+        List<Commodity> searchedCommoditiesList = new ArrayList<>();
+        if (searchBy.equals("genre"))
+            searchedCommoditiesList = commodityRepository.findAllByGenresContains(searchValue);
+        if (searchBy.equals("name")) searchedCommoditiesList = commodityRepository.findAllByNameContains(searchValue);
+        if (searchBy.equals("releaseDate"))
+            searchedCommoditiesList = commodityRepository.findAllByReleaseDateAfter(searchValue);
+        if (searchBy.equals("")) searchedCommoditiesList = commodityRepository.findAllByOrderByImdbRateDesc();
+        return searchedCommoditiesList;
     }
 
     public User getAuthenticatedUser(String username, String password) {
         User user = userRepository.findUserByEmailAndPassword(username, password);
-        if (user != null)
-            return user;
+        if (user != null) return user;
         User errorUser = new User();
-        errorUser.setName("error");
+        errorUser.setUsername("error");
         return errorUser;
     }
 
-    public User addUser(String username, String password, String name, String nickname, String birth_date) throws ParseException, NoSuchAlgorithmException {
-        if (userRepository.findUserByEmail(username) != null)
-        {
+    public User addUser(String email, String password, String username, String address, String birth_date, String credit) throws ParseException, NoSuchAlgorithmException {
+        if (userRepository.findUserByEmail(username) != null) {
             User errorUser = new User();
-            errorUser.setName("error");
+            errorUser.setUsername("error");
             return errorUser;
         }
         Date birthDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(birth_date);
         String hashPassword = HashCreator.getInstance().getMD5Hash(password);
-        User user = new User(username, hashPassword, nickname, name, birthDate);
+        User user = new User(email, hashPassword, username, address, birthDate, Integer.parseInt(credit));
         userRepository.save(user);
         return user;
     }
 
-    public User addUserWithGithub(String username, String password, String name, String nickname, String birth_date) throws Exception {
+    public User addUserWithGithub(String email, String username, String password, String address, String birth_date, Integer credit) throws Exception {
         User findUser = userRepository.findUserByEmail(username);
 
         Date birthDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").parse(birth_date);
@@ -178,27 +188,28 @@ public class DataBase {
         Date newBirthDate = c.getTime();
 
 
-        if (findUser != null)
-        {
+        if (findUser != null) {
             findUser.setPassword(password);
-            findUser.setName(name);
-            findUser.setNickname(nickname);
+            findUser.setPassword(email);
+            findUser.setUsername(username);
+            findUser.setAddress(address);
             findUser.setBirthDate(newBirthDate);
+            findUser.setCredit(credit);
             userRepository.save(findUser);
             return findUser;
         }
 
-        User user = new User(username, password, nickname, name, newBirthDate);
+        User user = new User(email, password, username, address, newBirthDate, credit);
         userRepository.save(user);
         return user;
     }
 
-    public Comment addComment(String userEmail, Integer movieId, String text) {
-        String username = userRepository.findUserByEmail(userEmail).getName();
-        Comment comment = new Comment(userEmail, movieId, text, username);
-        movieRepository.findMovieById(movieId).addComment(comment);
+    public Comment addComment(String userEmail, Integer commodityId, String text) {
+        String username = userRepository.findUserByEmail(userEmail).getUsername();
+        Comment comment = new Comment(userEmail, commodityId, text, username);
+        commodityRepository.findCommodityById(commodityId).addComment(comment);
         commentRepository.save(comment);
-        movieRepository.save(movieRepository.findMovieById(movieId));
+        commodityRepository.save(commodityRepository.findCommodityById(commodityId));
         return comment;
     }
 }

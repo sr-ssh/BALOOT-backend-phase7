@@ -1,7 +1,7 @@
 package ir.ac.ut.ie.Repository;
 
 import ir.ac.ut.ie.Entities.Comment;
-import ir.ac.ut.ie.Entities.Movie;
+import ir.ac.ut.ie.Entities.Commodity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

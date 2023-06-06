@@ -1,10 +1,10 @@
 package ir.ac.ut.ie.Controllers;
 
-import ir.ac.ut.ie.Entities.Movie;
+import ir.ac.ut.ie.Entities.Commodity;
 import ir.ac.ut.ie.Entities.User;
-import ir.ac.ut.ie.Exceptions.AgeLimitError;
-import ir.ac.ut.ie.Exceptions.MovieAlreadyExists;
-import ir.ac.ut.ie.Repository.MovieRepository;
+import ir.ac.ut.ie.Exceptions.StockLimitError;
+import ir.ac.ut.ie.Exceptions.CommodityAlreadyExists;
+import ir.ac.ut.ie.Repository.CommodityRepository;
 import ir.ac.ut.ie.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -14,85 +14,84 @@ import javax.servlet.http.HttpServlet;
 import java.io.IOException;
 import java.util.*;
 
-
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-public class WatchlistController extends HttpServlet {
+public class BuylistController extends HttpServlet {
     @Autowired
-    MovieRepository movieRepository;
+    CommodityRepository commodityRepository;
     @Autowired
     UserRepository userRepository;
 
-    private Movie[] getWatchlist(String userId) throws Exception {
-        Set<Integer> movieIds = userRepository.findUserByEmail(userId).getWatchList();
-        return movieRepository.findAllByIdIn(movieIds).toArray(new Movie[0]);
+    private Commodity[] getBuylist(String userId) {
+        Set<Integer> commodityIds = userRepository.findUserByEmail(userId).getBuyList();
+        return commodityRepository.findAllByIdIn(commodityIds).toArray(new Commodity[0]);
     }
 
-    @RequestMapping(value = "/getWatchlist/{userId}", method = RequestMethod.GET,
+    @RequestMapping(value = "/getBuylist/{userId}", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Movie[] getUser(@PathVariable(value = "userId") String userId) throws Exception {
-        return getWatchlist(userId);
+    public Commodity[] getUser(@PathVariable(value = "userId") String userId) throws Exception {
+        return getBuylist(userId);
     }
 
-    @RequestMapping(value = "/addToWatchlist/{userId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/addToBuylist/{userId}", method = RequestMethod.POST)
     @ResponseBody
-    public String addToWatchlist(
+    public String addToBuylist(
             @PathVariable(value = "userId") String userId,
-            @RequestParam(value = "movieId") Integer movieId,
-            @RequestParam(value = "ageLimit") Integer ageLimit) throws InterruptedException, IOException{
+            @RequestParam(value = "CommodityId") Integer commodityId,
+            @RequestParam(value = "inStock") Integer inStock) {
         try {
             User user = userRepository.findUserByEmail(userId);
-            user.addToWatchList(movieId, ageLimit);
+            user.addToBuyList(commodityId, inStock);
             userRepository.save(user);
-            return "Movie Added To Watchlist Successfully";
-        } catch (MovieAlreadyExists e1) {
+            return "Commodity Added To Buylist Successfully";
+        } catch (CommodityAlreadyExists e1) {
             return e1.getMessage();
-        } catch (AgeLimitError e2) {
+        } catch (StockLimitError e2) {
             return e2.getMessage();
         } catch (Exception e) {
             return e.getMessage();
         }
     }
 
-    @RequestMapping(value = "/deleteFromWatchlist/{userId}", method = RequestMethod.DELETE,
+    @RequestMapping(value = "/deleteFromBuylist/{userId}", method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Movie[] deleteFromWatchlist(
+    public Commodity[] deleteFromBuylist(
             @PathVariable(value = "userId") String userId,
-            @RequestParam(value = "movieId") Integer movieId) throws Exception {
-        userRepository.findUserByEmail(userId).getWatchList().remove(movieId);
+            @RequestParam(value = "commodityId") Integer commodityId) {
+        userRepository.findUserByEmail(userId).getBuyList().remove(commodityId);
         userRepository.save(userRepository.findUserByEmail(userId));
-        return getWatchlist(userId);
+        return getBuylist(userId);
     }
 
-    @RequestMapping(value = "/getRecommendedMovies/{userId}", method = RequestMethod.GET,
+    @RequestMapping(value = "/getRecommendedCommodities/{userId}", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Movie[] getRecommendedMovies(@PathVariable(value = "userId") String userId) throws Exception {
-        List <Integer> recommended_movies = new ArrayList<>();
-        List <Integer> movieId_byScore = new ArrayList<>();
+    public Commodity[] getRecommendedCommodities(@PathVariable(value = "userId") String userId)  {
+        List <Integer> recommended_commodities = new ArrayList<>();
+        List <Integer> commodityId_byScore = new ArrayList<>();
         List <Integer> scores = new ArrayList<>();
         User current_user =  userRepository.findUserByEmail(userId);
-        for (Movie movie : movieRepository.findAll()) {
-            int genre_similarity_score = 0;
-            for (Integer movieId_in_WatchList : current_user.getWatchList()) {
-                Movie movie_in_WatchList = movieRepository.findMovieById(movieId_in_WatchList);
-                ArrayList <String> temp_list = new ArrayList<>(movie.getGenres());
-                temp_list.retainAll(movie_in_WatchList.getGenres());
-                genre_similarity_score += temp_list.size();
+        for (Commodity commodity : commodityRepository.findAll()) {
+            int category_similarity_score = 0;
+            for (Integer commodityId_in_BuyList : current_user.getBuyList()) {
+                Commodity commodity_in_BuyList = commodityRepository.findCommodityById(commodityId_in_BuyList);
+                ArrayList <String> temp_list = new ArrayList<>(commodity.getCategories());
+                temp_list.retainAll(commodity_in_BuyList.getCategories());
+                category_similarity_score += temp_list.size();
             }
-            scores.add((int) (3 * genre_similarity_score + movie.getImdbRate() + movie.getRating()));
-            movieId_byScore.add(movie.getId());
-            movie.setScore((int) (3 * genre_similarity_score + movie.getImdbRate() + movie.getRating()));
+            scores.add((int) (3 * category_similarity_score + /*+ commodity.getImdbRate() +*/ commodity.getRating()));
+            commodityId_byScore.add(commodity.getId());
+            commodity.setScore((int) (3 * category_similarity_score /* commodity.getImdbRate() +*/ + commodity.getRating()));
         }
 
-        while (movieId_byScore.size() != 0) {
+        while (commodityId_byScore.size() != 0) {
             int max_score_index = scores.indexOf(Collections.max(scores));
-            recommended_movies.add(movieId_byScore.get(max_score_index));
+            recommended_commodities.add(commodityId_byScore.get(max_score_index));
             scores.remove(max_score_index);
-            movieId_byScore.remove((max_score_index));
+            commodityId_byScore.remove((max_score_index));
         }
-        Movie[] finalList = new Movie[3];
+        Commodity[] finalList = new Commodity[3];
         for (int i=0; i<3; i++)
-            finalList[i] = movieRepository.findMovieById(recommended_movies.get(i));
+            finalList[i] = commodityRepository.findCommodityById(recommended_commodities.get(i));
         return finalList;
     }
 }

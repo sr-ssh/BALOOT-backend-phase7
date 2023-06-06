@@ -46,11 +46,11 @@ public class OAuthController {
         HashMap<String, Object> userData = mapper.readValue(userDataResult.body(), HashMap.class);
 
         String email = (String) userData.get("email");
-        String name = (String) userData.get("name");
+        String username = (String) userData.get("username");
         String nickname = (String) userData.get("login");
         String birth_date = (String) userData.get("created_at");
 
-        DataBase.getInstance().addUserWithGithub(email, null, name, nickname, birth_date);
+        DataBase.getInstance().addUserWithGithub(email, username, null, "address", birth_date, 0);
 
         return userDataResult.body();
     }

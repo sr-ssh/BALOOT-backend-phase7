@@ -1,5 +1,6 @@
 package ir.ac.ut.ie.Entities;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ir.ac.ut.ie.Exceptions.InvalidCommand;
@@ -16,63 +17,54 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer commentId;
     private String userEmail;
-    private Integer movieId;
+    private Integer commodityId;
     private String text;
     private String username;
-    private Integer commentLike;
-    private Integer commentDislike;
+    private Date date;
+    private int like;
+    private int dislike;
 
     public Comment() {
-        this.commentLike = 0;
-        this.commentDislike = 0;
     }
 
-    public Comment(String userEmail, Integer movieId, String text, String username) {
+
+    public Comment(String userEmail, Integer commodityId, String text, String username) {
         this.userEmail = userEmail;
         this.text = text;
         this.username = username;
-        this.commentLike = 0;
-        this.commentDislike = 0;
-        this.movieId = movieId;
+        like = 0;
+        dislike = 0;
+        this.commodityId = commodityId;
+//        date = new Date();
     }
-
     public void setUsername(String username) {
         this.username = username;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public Comment(Integer comment_id) {
-        commentId = comment_id;
-        this.commentLike = 0;
-        this.commentDislike = 0;
-    }
-
     public void initialValues() {
-        this.commentLike = 0;
-        this.commentDislike = 0;
+        like = 0;
+        dislike = 0;
     }
 
     public void addVote(Vote vote, VoteRepository voteRepository) {
-        Vote voteOb = voteRepository.findVoteByUserEmailAndCommentId(vote.getUserEmail(), vote.getCommentId());
+        Vote voteOb = voteRepository.findVoteByUserEmailAndCommentId(vote.getUsername(), vote.getCommentId());
 
         if (voteOb != null) {
             if (voteOb.getVote() == 1)
-                commentLike -= 1;
+                like -= 1;
             if (voteOb.getVote() == -1)
-                commentDislike -= 1;
+                dislike -= 1;
             voteRepository.deleteById(voteOb.getVoteID());
         }
         updateLikeDislike(vote);
+
     }
 
     private void updateLikeDislike(Vote vote) {
         if (vote.getVote() == 1)
-            commentLike += 1;
+            like += 1;
         if (vote.getVote() == -1)
-            commentDislike += 1;
+            dislike += 1;
     }
 
     public ObjectNode getInformation(ObjectMapper mapper) {
@@ -80,55 +72,54 @@ public class Comment {
         commentMapper.put("commentId", commentId);
         commentMapper.put("userEmail", userEmail);
         commentMapper.put("text", text);
-        commentMapper.put("like", commentLike);
-        commentMapper.put("dislike", commentDislike);
+        commentMapper.put("like", like);
+        commentMapper.put("dislike", dislike);
         return commentMapper;
     }
 
-
-    public Integer getCommentId() {
-        return commentId;
+    public void checkForInvalidCommand() throws InvalidCommand {
+        if (userEmail == null || commodityId == null || text == null || date == null)
+            throw new InvalidCommand();
     }
 
-    public int getMovieId() {
-        return movieId;
+    public int getCommentId() {
+        return commentId;
     }
 
     public String getUserEmail() {
         return userEmail;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public Integer getLike() {
-        return commentLike;
-    }
-
-    public Integer getDislike() {
-        return commentDislike;
-    }
-
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
     }
 
-    public void setCommentId(Integer commentId) {
-        this.commentId = commentId;
+    public Integer getCommodityId() {
+        return commodityId;
     }
 
+    public void setCommodityId(Integer commodityId) {
+        this.commodityId = commodityId;
+    }
+
+    public String getText() {
+        return text;
+    }
 
     public void setText(String text) {
         this.text = text;
     }
 
-    public void setMovieId(Integer movieId) {
-        this.movieId = movieId;
+    public Date getDate() {
+        return date;
     }
 
-    public void setLike(Integer like) {
-        this.commentLike = like;
+    public int getLike() {
+        return like;
     }
-    public void setDislike(Integer dislike) { this.commentDislike = dislike; }
+
+    public int getDislike() {
+        return dislike;
+    }
+
 }

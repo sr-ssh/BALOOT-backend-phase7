@@ -21,13 +21,12 @@ public class CommentController {
     @Autowired
     CommentRepository commentRepository;
 
-    @RequestMapping(value = "/postMovieCommentRate", method = RequestMethod.POST,
+    @RequestMapping(value = "/postCommodityCommentRate", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Comment postMovieCommentRate(
             @RequestParam(value = "userId") String userId,
             @RequestParam(value = "commentId") Integer commentId,
             @RequestParam(value = "like") Integer like) throws Exception {
-
         Vote vote = new Vote(userId, commentId, like);
         commentRepository.findCommentByCommentId(commentId).addVote(vote, voteRepository);
         voteRepository.save(vote);
@@ -38,9 +37,9 @@ public class CommentController {
     @RequestMapping(value = "/addComment", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Comment addComment(
-            @RequestParam(value = "userId") String userId,
-            @RequestParam(value = "movieId") Integer movieId,
-            @RequestParam(value = "text") String text) {
-        return DataBase.getInstance().addComment(userId, movieId, text);
+            @RequestParam(value = "username") String username,
+            @RequestParam(value = "commodityId") Integer commodityId,
+            @RequestParam(value = "text") String text) throws Exception {
+        return DataBase.getInstance().addComment(username, commodityId, text);
     }
 }

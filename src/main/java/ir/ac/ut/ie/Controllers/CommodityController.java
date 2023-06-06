@@ -1,49 +1,52 @@
 package ir.ac.ut.ie.Controllers;
-import ir.ac.ut.ie.Entities.Actor;
-import ir.ac.ut.ie.Entities.Movie;
-import ir.ac.ut.ie.Entities.Rate;
-import ir.ac.ut.ie.Repository.ActorRepository;
-import ir.ac.ut.ie.Repository.MovieRepository;
+import ir.ac.ut.ie.DataBase;
+import ir.ac.ut.ie.Entities.*;
+import ir.ac.ut.ie.Repository.CommodityRepository;
 import ir.ac.ut.ie.Repository.RateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import java.util.*;
+
+import java.util.concurrent.TimeUnit;
 
 
 @RestController
-public class MovieController {
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+public class CommodityController {
+    @Autowired
+    CommodityRepository commodityRepository;
     @Autowired
     RateRepository rateRepository;
-    @Autowired
-    MovieRepository movieRepository;
-    @Autowired
-    ActorRepository actorRepository;
-
-    @RequestMapping(value = "/getMovie/{id}", method = RequestMethod.GET,
+    @RequestMapping(value = "/getCommodity/{id}", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Movie getMovie(@PathVariable(value = "id") Integer id) throws Exception {
-        return movieRepository.findMovieById(id);
+    public Commodity getCommodity(@PathVariable(value = "id") Integer id) throws Exception {
+        TimeUnit.SECONDS.sleep(3);
+        return DataBase.getInstance().getCommodityById(id);
     }
 
-    @RequestMapping(value = "/getMovieActors/{id}", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Actor[] getMovieActors(@PathVariable(value = "id") Integer id) {;
-        return actorRepository.findAllByMoviesPlayed(movieRepository.findMovieById(id)).toArray(new Actor[0]);
-    }
+//    @RequestMapping(value = "/getMovieActors/{id}", method = RequestMethod.GET,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Actor[] getMovieActors(@PathVariable(value = "id") Integer id) throws Exception {
+//        List<Actor> actors = new ArrayList<>();
+//        Movie movie = DataBase.getInstance().getMovieById(id);
+//        for (Integer actorId : movie.getCast()) {
+//            actors.add(DataBase.getInstance().getActorById(actorId));
+//        }
+//        TimeUnit.SECONDS.sleep(3);
+//        return actors.toArray(new Actor[0]);
+//    }
 
-    @RequestMapping(value = "/postRate/{movieId}", method = RequestMethod.POST,
+    @RequestMapping(value = "/postRate/{commodityId}", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Movie postRate(
-            @PathVariable(value = "movieId") Integer movieId,
+    public Commodity postRate(
+            @PathVariable(value = "commodityId") Integer commodityId,
             @RequestParam(value = "userId") String userId,
-            @RequestParam(value = "rate") int score) {
-
-        Rate newRate = new Rate(userId, movieId, score);
-        Movie movie = movieRepository.findMovieById(movieId);
-        movie.addRate(newRate, rateRepository);
+            @RequestParam(value = "rate") int score) throws Exception {
+        Rate newRate = new Rate(userId, commodityId, score);
+        Commodity commodity = commodityRepository.findCommodityById(commodityId);
+        commodity.addRate(newRate, rateRepository);
         rateRepository.save(newRate);
-        movieRepository.save(movie);
-        return movie;
+        commodityRepository.save(commodity);
+        return commodity;
     }
 }

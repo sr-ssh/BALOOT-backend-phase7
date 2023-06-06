@@ -2,38 +2,28 @@ package ir.ac.ut.ie.Entities;
 
 import ir.ac.ut.ie.Exceptions.InvalidCommand;
 import ir.ac.ut.ie.Exceptions.StockLimitError;
+import ir.ac.ut.ie.Repository.RateRepository;
+import javax.persistence.*;
 
 import java.util.*;
 
+@Entity
+@Table(name= "Commodity")
 public class Commodity {
-    //    private Integer id;
-//    private String name;
-//    private String summary;
-//    private String releaseDate;
-//    private String director;
-//    private List<String> writers;
-//    private List<String> genres;
-//    private List<Integer> cast;
-//    private List<String> castName;
-//    private Float imdbRate;
-//    private Integer duration;
-//    private Integer ageLimit;
-//    public float rating;
-//    private int ratingCount;
-//    private Map<Integer, Comment> comments;
-//    private Map<String, Integer> rates;
-//    int score;
+    @Id
+    @Column(name = "commodity_id")
     private Integer id;
     private String name;
     private Integer providerId;
     private String providerName;
     private Integer price;
+    @ElementCollection
     private List<String> categories;
     private Float rating;
     private Integer inStock;
     private int ratingCount;
-    private Map<Integer, Comment> comments;
-    private Map<String, Integer> rates;
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<Comment> comments;
 
     private String releaseDate;
 
@@ -41,8 +31,7 @@ public class Commodity {
 
     public void initialValues() {
         ratingCount = 1;
-        comments = new HashMap<>();
-        rates = new HashMap<>();
+        comments = new ArrayList<>();
     }
 
     public void update(Commodity updatedCommodity) {
@@ -55,19 +44,22 @@ public class Commodity {
         inStock = updatedCommodity.getInStock();
     }
 
-    public void addComment(Comment comment, Integer commentId) {
-        comment.initialValues(commentId);
-        comments.put(commentId, comment);
+    public void addComment(Comment comment) {
+        comment.initialValues();
+        comments.add(comment);
     }
 
-    public void addRate(Rate rate) {
-        if (rates.containsKey(rate.getUsername()))
-            rating = (rating * ratingCount - rates.get(rate.getUsername()) + rate.getScore()) / ratingCount;
+    public void addRate(Rate rate, RateRepository rateRepository) {
+        Rate rateOb = rateRepository.findRateByUserEmailAndMovieId(rate.getUsername(), rate.getCommodityId());
+
+        if (rateOb != null) {
+            rating = (rating * ratingCount - rateOb.getScore() + rate.getScore()) / ratingCount;
+            rateRepository.delete(rateOb);
+        }
         else {
             rating = (rating * ratingCount + rate.getScore()) / (ratingCount + 1);
             ratingCount += 1;
         }
-        rates.put(rate.getUsername(), (int) rate.getScore());
     }
 
     public boolean categoryMatch(String genre) {
@@ -162,7 +154,7 @@ public class Commodity {
 //        return ratingCount;
 //    }
 
-    public Map<Integer, Comment> getComments() {
+    public List<Comment> getComments() {
         return comments;
     }
 
