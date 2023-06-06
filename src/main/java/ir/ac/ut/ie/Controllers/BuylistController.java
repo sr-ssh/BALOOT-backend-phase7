@@ -21,7 +21,6 @@ public class BuylistController extends HttpServlet {
     CommodityRepository commodityRepository;
     @Autowired
     UserRepository userRepository;
-
     private Commodity[] getBuylist(String userId) {
         Set<Integer> commodityIds = userRepository.findUserByEmail(userId).getBuyList();
         return commodityRepository.findAllByIdIn(commodityIds).toArray(new Commodity[0]);

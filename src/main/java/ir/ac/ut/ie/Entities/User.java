@@ -3,7 +3,6 @@ package ir.ac.ut.ie.Entities;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ir.ac.ut.ie.DataBase;
 import ir.ac.ut.ie.Exceptions.*;
-
 import javax.persistence.*;
 import java.util.*;
 @Entity

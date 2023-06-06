@@ -12,7 +12,6 @@ public class Rate {
     private String username;
     private Integer commodityId;
     private float score;
-
     public Rate(String username, Integer commodityId, float score) {
         this.username = username;
         this.commodityId = commodityId;

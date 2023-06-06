@@ -24,7 +24,6 @@ public class Commodity {
     private int ratingCount;
     @OneToMany(fetch = FetchType.EAGER)
     private List<Comment> comments;
-
     private String releaseDate;
 
     int score;
@@ -55,8 +54,7 @@ public class Commodity {
         if (rateOb != null) {
             rating = (rating * ratingCount - rateOb.getScore() + rate.getScore()) / ratingCount;
             rateRepository.delete(rateOb);
-        }
-        else {
+        }        else {
             rating = (rating * ratingCount + rate.getScore()) / (ratingCount + 1);
             ratingCount += 1;
         }
