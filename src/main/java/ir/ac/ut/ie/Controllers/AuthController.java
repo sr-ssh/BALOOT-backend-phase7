@@ -39,8 +39,8 @@ public class AuthController {
 
         String jwt = Jwts.builder()
                 .signWith(SignatureAlgorithm.HS256, key)
-                .setHeaderParam("typ", "JWT")
-                .setIssuer("hamid")
+                .setHeaderParam("type", "JWT")
+                .setIssuer("reihaneh")
                 .setIssuedAt(new Date())
                 .setExpiration(exp)
                 .claim("userId", userId)
@@ -49,8 +49,9 @@ public class AuthController {
         return jwt;
     }
 
-    @PostMapping("login")
+    @PostMapping("/api/login")
     public JsonNode login(@RequestBody JsonNode body) throws Exception {
+
         if (!body.has("email") || !body.has("password"))
             throw new Exception("The parameters are low.");
 

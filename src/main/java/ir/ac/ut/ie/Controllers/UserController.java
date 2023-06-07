@@ -4,7 +4,6 @@ package ir.ac.ut.ie.Controllers;
         import ir.ac.ut.ie.Entities.User;
         import org.springframework.http.MediaType;
         import org.springframework.web.bind.annotation.*;
-        import java.io.IOException;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -13,7 +12,7 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUser(
             @RequestParam(value = "username") String username,
-            @RequestParam(value = "password") String password) throws IOException, InterruptedException {
+            @RequestParam(value = "password") String password) {
         System.out.println("nutsssssssss");
         return DataBase.getInstance().getAuthenticatedUser(username, password);
     }
