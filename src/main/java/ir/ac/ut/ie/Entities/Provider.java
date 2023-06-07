@@ -10,12 +10,14 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
 @Entity
-@Table(name = "Actor")
+@Table(name = "Provider")
 public class Provider {
     @Id
     private Integer id;
     private String name;
     private Date registryDate;
+    @Column(name = "image", length = 2048)
+    private String image;
     @ManyToMany
     private List<Commodity> commoditiesProvide;
 
@@ -58,5 +60,8 @@ public class Provider {
     }
     public Date getRegistryDate(){
         return registryDate;
+    }
+    public String getImage() {
+        return image;
     }
 }

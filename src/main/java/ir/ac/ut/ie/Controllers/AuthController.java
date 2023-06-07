@@ -28,7 +28,7 @@ public class AuthController {
     @Autowired
     UserRepository userRepository;
 
-    public static final String KEY = "iemdb1401";
+    public static final String KEY = "baloot1402";
 
     private String createToken(String userId) {
         Calendar c = Calendar.getInstance();

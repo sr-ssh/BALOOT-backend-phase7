@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface VoteRepository extends CrudRepository<Vote, Integer> {
-    Vote findVoteByUserEmailAndCommentId(String userEmail, Integer commentId);
+    Vote findVoteByUsernameAndCommentId(String userEmail, Integer commentId);
 }

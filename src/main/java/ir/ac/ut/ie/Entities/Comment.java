@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ir.ac.ut.ie.Exceptions.InvalidCommand;
 import ir.ac.ut.ie.Repository.VoteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 import java.util.*;
@@ -21,8 +20,8 @@ public class Comment {
     private String text;
     private String username;
     private Date date;
-    private int like;
-    private int dislike;
+    private int commentLike;
+    private int commentDislike;
 
     public Comment() {
     }
@@ -32,8 +31,8 @@ public class Comment {
         this.userEmail = userEmail;
         this.text = text;
         this.username = username;
-        like = 0;
-        dislike = 0;
+        commentLike = 0;
+        commentDislike = 0;
         this.commodityId = commodityId;
 //        date = new Date();
     }
@@ -42,18 +41,18 @@ public class Comment {
     }
 
     public void initialValues() {
-        like = 0;
-        dislike = 0;
+        commentLike = 0;
+        commentDislike = 0;
     }
 
     public void addVote(Vote vote, VoteRepository voteRepository) {
-        Vote voteOb = voteRepository.findVoteByUserEmailAndCommentId(vote.getUsername(), vote.getCommentId());
+        Vote voteOb = voteRepository.findVoteByUsernameAndCommentId(vote.getUsername(), vote.getCommentId());
 
         if (voteOb != null) {
             if (voteOb.getVote() == 1)
-                like -= 1;
+                commentLike -= 1;
             if (voteOb.getVote() == -1)
-                dislike -= 1;
+                commentDislike -= 1;
             voteRepository.deleteById(voteOb.getVoteID());
         }
         updateLikeDislike(vote);
@@ -62,18 +61,17 @@ public class Comment {
 
     private void updateLikeDislike(Vote vote) {
         if (vote.getVote() == 1)
-            like += 1;
+            commentLike += 1;
         if (vote.getVote() == -1)
-            dislike += 1;
+            commentDislike += 1;
     }
 
     public ObjectNode getInformation(ObjectMapper mapper) {
         ObjectNode commentMapper = mapper.createObjectNode();
-        commentMapper.put("commentId", commentId);
         commentMapper.put("userEmail", userEmail);
         commentMapper.put("text", text);
-        commentMapper.put("like", like);
-        commentMapper.put("dislike", dislike);
+        commentMapper.put("like", commentLike);
+        commentMapper.put("dislike", commentDislike);
         return commentMapper;
     }
 
@@ -82,7 +80,7 @@ public class Comment {
             throw new InvalidCommand();
     }
 
-    public int getCommentId() {
+    public Integer getCommentId() {
         return commentId;
     }
 
@@ -114,12 +112,12 @@ public class Comment {
         return date;
     }
 
-    public int getLike() {
-        return like;
+    public int getCommentLike() {
+        return commentLike;
     }
 
-    public int getDislike() {
-        return dislike;
+    public int getCommentDislike() {
+        return commentDislike;
     }
 
 }

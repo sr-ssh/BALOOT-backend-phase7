@@ -25,8 +25,9 @@ public class Commodity {
     @OneToMany(fetch = FetchType.EAGER)
     private List<Comment> comments;
     private String releaseDate;
-
     int score;
+    @Column(name = "image", length = 2048)
+    private String image;
 
     public void initialValues() {
         ratingCount = 1;
@@ -49,7 +50,7 @@ public class Commodity {
     }
 
     public void addRate(Rate rate, RateRepository rateRepository) {
-        Rate rateOb = rateRepository.findRateByUserEmailAndMovieId(rate.getUsername(), rate.getCommodityId());
+        Rate rateOb = rateRepository.findRateByUsernameAndCommodityId(rate.getUsername(), rate.getCommodityId());
 
         if (rateOb != null) {
             rating = (rating * ratingCount - rateOb.getScore() + rate.getScore()) / ratingCount;
@@ -180,6 +181,9 @@ public class Commodity {
 //    }
     public void setScore(int score) {
         this.score = score;
+    }
+    public String getImage() {
+        return image;
     }
 }
 

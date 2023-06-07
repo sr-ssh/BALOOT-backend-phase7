@@ -11,5 +11,5 @@ import java.util.List;
 @Repository
 public interface ProviderRepository extends CrudRepository<Provider, Integer> {
     Provider findProviderById(int id);
-    List<Provider> findAllByCommoditiesPlayed(Commodity commodity);
+    List<Provider> findAllByCommoditiesProvide(Commodity commodity);
 }

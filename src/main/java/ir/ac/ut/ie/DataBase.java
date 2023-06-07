@@ -20,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 
+
+
 @Component
 public class DataBase {
     private static DataBase instance;
@@ -36,7 +38,7 @@ public class DataBase {
         DataBase.providerRepository = providerRepository;
         DataBase.userRepository = userRepository;
         DataBase.commentRepository = commentRepository;
-        DataBase.discountRepository = DataBase.discountRepository;
+        DataBase.discountRepository = discountRepository;
     }
 
     public static DataBase getInstance() {
@@ -59,7 +61,7 @@ public class DataBase {
     @PostConstruct
     public void initialize() {
         mapper = new ObjectMapper();
-        host = "http://138.197.181.131:5000";
+        host = "http://5.253.25.110:5000";
         setInformation();
     }
 
@@ -95,13 +97,13 @@ public class DataBase {
 
     private void setProviderCommoditesProvide() {
         for (Provider provider : providerRepository.findAll()) {
-            provider.setCommoditiesProvide((ArrayList<Commodity>) commodityRepository.findAllByProvider(provider.getId()));
+            provider.setCommoditiesProvide((ArrayList<Commodity>) commodityRepository.findAllByProviderId(provider.getId()));
             providerRepository.save(provider);
         }
     }
 
     public List<Commodity> getCommoditiesFromProvider(Integer providerId) {
-        return commodityRepository.findAllByProvider(providerId);
+        return commodityRepository.findAllByProviderId(providerId);
     }
 
     private void setUsersList() throws Exception {
@@ -149,11 +151,11 @@ public class DataBase {
     public List<Commodity> setSearchedCommodities(String searchValue, String searchBy) {
         List<Commodity> searchedCommoditiesList = new ArrayList<>();
         if (searchBy.equals("genre"))
-            searchedCommoditiesList = commodityRepository.findAllByGenresContains(searchValue);
+            searchedCommoditiesList = commodityRepository.findAllByCategoriesContains(searchValue);
         if (searchBy.equals("name")) searchedCommoditiesList = commodityRepository.findAllByNameContains(searchValue);
         if (searchBy.equals("releaseDate"))
             searchedCommoditiesList = commodityRepository.findAllByReleaseDateAfter(searchValue);
-        if (searchBy.equals("")) searchedCommoditiesList = commodityRepository.findAllByOrderByImdbRateDesc();
+        if (searchBy.equals("")) searchedCommoditiesList = commodityRepository.findAllByOrderByRatingDesc();
         return searchedCommoditiesList;
     }
 

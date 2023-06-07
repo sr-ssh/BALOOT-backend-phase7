@@ -12,9 +12,9 @@ public interface CommodityRepository extends CrudRepository<Commodity, Integer> 
     Commodity findCommodityById(int id);
     List<Commodity> findAllByOrderByReleaseDateDesc();
     List<Commodity> findAllByNameContains(String searchValue);
-    List<Commodity> findAllByGenresContains(String searchValue);
+    List<Commodity> findAllByCategoriesContains(String searchValue);
     List<Commodity> findAllByReleaseDateAfter(String searchValue);
-    List<Commodity> findAllByOrderByImdbRateDesc();
-    List<Commodity> findAllByProvider(int cast);
+    List<Commodity> findAllByOrderByRatingDesc();
+    List<Commodity> findAllByProviderId(int cast);
     List<Commodity> findAllByIdIn(Set<Integer> movieIds);
 }

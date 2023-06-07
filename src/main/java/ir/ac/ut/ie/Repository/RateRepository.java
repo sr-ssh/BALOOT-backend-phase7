@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface RateRepository extends CrudRepository<Rate, String> {
-    Rate findRateByUserEmailAndMovieId(String userEmail, Integer movieId);
+    Rate findRateByUsernameAndCommodityId(String userEmail, Integer movieId);
 }
